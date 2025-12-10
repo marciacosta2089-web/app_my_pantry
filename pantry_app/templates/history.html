@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Cooking history</h2>
+  <small class="text-muted">Track what you cooked and how you rated it.</small>
+</div>
+<div class="card">
+  <div class="table-responsive">
+    <table class="table align-middle mb-0">
+      <thead><tr><th>Date</th><th>Name</th><th>Servings</th><th>Rating</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for c in cooked %}
+        <tr>
+          <td>{{ c.cooked_at.strftime('%Y-%m-%d %H:%M') if c.cooked_at else '' }}</td>
+          <td>{{ c.name }}</td>
+          <td>{{ c.servings }}</td>
+          <td>{{ c.rating if c.rating is not none else 'n/a' }}</td>
+          <td>
+            <form method="post" action="{{ url_for('rate_recipe', recipe_id=c.id) }}" class="d-flex gap-2">
+              <input type="number" min="0" max="10" class="form-control form-control-sm" name="rating" value="{{ c.rating or 0 }}" style="width:90px">
+              <button class="btn btn-outline-primary btn-sm">Rate</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="text-muted">Cook a recipe to see history here.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

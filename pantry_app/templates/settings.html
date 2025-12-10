@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Settings</h2>
+  <small class="text-muted">Theme, units, categories, and data tools.</small>
+</div>
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="card mb-3">
+      <div class="card-header">Display & units</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label">Measurement system</label>
+            <select class="form-select" name="units">
+              <option value="metric" {% if user.default_units=='metric' %}selected{% endif %}>Metric (g, kg, ml, L)</option>
+              <option value="imperial" {% if user.default_units=='imperial' %}selected{% endif %}>Imperial (oz, lb, cups)</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Theme</label>
+            <select class="form-select" name="theme">
+              <option value="light" {% if user.theme=='light' %}selected{% endif %}>Light</option>
+              <option value="dark" {% if user.theme=='dark' %}selected{% endif %}>Dark</option>
+            </select>
+          </div>
+          <button class="btn btn-primary">Save settings</button>
+        </form>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Export / Import</div>
+      <div class="card-body">
+        <p>Export all data (inventory, recipes, history, categories, shopping list, barcode cache) as JSON.</p>
+        <a class="btn btn-outline-primary" href="{{ url_for('export_data') }}" target="_blank">Export JSON</a>
+        <hr>
+        <form method="post" action="{{ url_for('import_data') }}" enctype="multipart/form-data" class="d-flex gap-2 align-items-center">
+          <div>
+            <label class="form-label">Import JSON</label>
+            <input class="form-control" type="file" name="file" accept="application/json" required>
+          </div>
+          <button class="btn btn-success mt-4">Import</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card">
+      <div class="card-header">Category management</div>
+      <div class="card-body">
+        <form method="post" action="{{ url_for('manage_category') }}" class="mb-3">
+          <input type="hidden" name="action" value="create">
+          <div class="input-group">
+            <input class="form-control" name="name" placeholder="New category name" required>
+            <button class="btn btn-outline-primary">Add</button>
+          </div>
+        </form>
+        <div class="list-group">
+          {% for c in categories %}
+          <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div>{{ c.name }}</div>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#edit{{ c.id }}">Rename</button>
+              <form method="post" action="{{ url_for('manage_category') }}">
+                <input type="hidden" name="action" value="delete">
+                <input type="hidden" name="category_id" value="{{ c.id }}">
+                <button class="btn btn-outline-danger">Delete</button>
+              </form>
+            </div>
+          </div>
+          <div class="collapse" id="edit{{ c.id }}">
+            <form method="post" action="{{ url_for('manage_category') }}" class="border p-2">
+              <input type="hidden" name="action" value="rename">
+              <input type="hidden" name="category_id" value="{{ c.id }}">
+              <div class="input-group">
+                <input class="form-control" name="name" value="{{ c.name }}">
+                <button class="btn btn-outline-primary">Save</button>
+              </div>
+            </form>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

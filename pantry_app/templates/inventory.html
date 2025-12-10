@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2>Inventory</h2>
+  <div class="small text-muted">Metric by default; switch in Settings.</div>
+</div>
+<div class="card mb-4">
+  <div class="card-body">
+    <form class="row gy-2 gx-2" method="get">
+      <div class="col-md-3">
+        <label class="form-label">Location</label>
+        <select name="location" class="form-select" onchange="this.form.submit()">
+          <option value="">All</option>
+          <option value="pantry" {% if request.args.get('location')=='pantry' %}selected{% endif %}>Pantry</option>
+          <option value="fridge" {% if request.args.get('location')=='fridge' %}selected{% endif %}>Fridge</option>
+          <option value="freezer" {% if request.args.get('location')=='freezer' %}selected{% endif %}>Freezer</option>
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Category</label>
+        <select name="category_id" class="form-select" onchange="this.form.submit()">
+          <option value="">All</option>
+          {% for c in categories %}
+          <option value="{{ c.id }}" {% if request.args.get('category_id')==c.id|string %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Low stock only</label>
+        <select name="low_stock" class="form-select" onchange="this.form.submit()">
+          <option value="">No</option>
+          <option value="1" {% if request.args.get('low_stock') %}selected{% endif %}>Yes</option>
+        </select>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Products</span>
+    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">Add product</button>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead>
+        <tr>
+          <th>Name</th><th>Qty</th><th>Category</th><th>Location</th><th>Low stock</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+        <tr class="{% if p.quantity <= p.low_stock_threshold %}table-warning{% endif %}">
+          <td>{{ p.name }}</td>
+          <td>{{ '%.1f'|format(p.quantity) }} {{ p.unit }}</td>
+          <td>{{ p.category.name if p.category else 'Unassigned' }}</td>
+          <td class="text-capitalize">{{ p.location }}</td>
+          <td>{% if p.quantity <= p.low_stock_threshold %}<span class="badge text-bg-danger">Low</span>{% endif %}</td>
+          <td>
+            <div class="btn-group btn-group-sm">
+              <button class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editModal{{ p.id }}">Edit</button>
+              <a class="btn btn-outline-danger" href="{{ url_for('delete_product', product_id=p.id) }}">Delete</a>
+            </div>
+          </td>
+        </tr>
+        <div class="modal fade" id="editModal{{ p.id }}" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <form method="post" action="{{ url_for('edit_product', product_id=p.id) }}">
+                <div class="modal-header"><h5 class="modal-title">Edit {{ p.name }}</h5></div>
+                <div class="modal-body">
+                  {% include 'partials/product_form.html' with context %}
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+                  <button class="btn btn-primary" type="submit">Save</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+<div class="modal fade" id="addModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ url_for('add_product') }}">
+        <div class="modal-header"><h5 class="modal-title">Add product</h5></div>
+        <div class="modal-body">
+          {% set p = None %}
+          {% include 'partials/product_form.html' with context %}
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+          <button class="btn btn-primary" type="submit">Add</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
