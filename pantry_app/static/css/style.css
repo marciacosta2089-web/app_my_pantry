@@ -1,0 +1,8 @@
+body {
+  min-height: 100vh;
+}
+.table thead th { white-space: nowrap; }
+@media (max-width: 768px) {
+  .navbar .navbar-text { display: none; }
+  .table-responsive { font-size: 0.9rem; }
+}
